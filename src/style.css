@@ -2234,38 +2234,110 @@ textarea.form-control {
 
 @media (max-width: 1024px) {
   .hero {
-    flex-direction: column;
-    text-align: center;
-    padding-top: calc(var(--nav-height) + 40px);
+    min-height: auto;
+    padding-top: calc(var(--nav-height) + 20px);
+    padding-bottom: 60px;
   }
-  .hero__content { max-width: 100%; }
-  .hero__subtitle { margin: 0 auto 32px; }
-  .hero__cta { justify-content: center; }
-  .hero__stats { justify-content: center; }
-  .hero__visual { margin-top: 40px; }
+  
+  .hero__inner {
+    padding: 40px 24px 20px;
+  }
 
   .steps { flex-direction: column; align-items: center; }
   .step__connector { display: none; }
 
   .impact-grid { grid-template-columns: repeat(2, 1fr); }
-
   .dash-cards { grid-template-columns: repeat(2, 1fr); }
   .dash-grid { grid-template-columns: 1fr; }
-
   .footer__grid { grid-template-columns: 1fr 1fr; gap: 30px; }
-
   .schedule-container { grid-template-columns: 1fr; }
   .map-dashboard { grid-template-columns: 1fr; height: auto; }
   .map-main .map { height: 400px; }
-
   .reports-grid { grid-template-columns: 1fr; }
   .impact-hero-card { flex-direction: column; text-align: center; }
 }
 
 @media (max-width: 768px) {
-  .nav__links { display: none; }
+  .nav__links {
+    display: none;
+  }
+
+  .nav__links.open {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    top: var(--nav-height);
+    left: 0;
+    right: 0;
+    background: #080d14;
+    border-bottom: 1px solid rgba(0, 230, 118, 0.25);
+    padding: 24px 20px;
+    gap: 16px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.9);
+    z-index: 9999;
+  }
+
+  .nav__links.open .nav__link {
+    font-size: 1.05rem;
+    padding: 8px 0;
+  }
+
   .nav__actions { display: none; }
-  .nav__hamburger { display: flex; }
+  .nav__hamburger { display: flex; cursor: pointer; }
+
+  /* Hero Mobile */
+  .hero {
+    min-height: 100svh;
+    min-height: 100dvh;
+    padding-top: calc(var(--nav-height) + 10px);
+    display: flex;
+    align-items: center;
+  }
+
+  .hero__inner {
+    padding: 24px 20px 48px;
+    max-width: 100%;
+  }
+
+  .hero__left {
+    max-width: 100%;
+  }
+
+  .hero__headline {
+    font-size: clamp(2rem, 8.5vw, 2.8rem);
+    line-height: 1.1;
+    margin-bottom: 16px;
+  }
+
+  .hero__desc {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 24px;
+  }
+
+  .hero__buttons {
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    margin-bottom: 32px;
+  }
+
+  .hero__buttons .btn {
+    width: 100%;
+    justify-content: center;
+    padding: 14px 20px;
+    font-size: 0.95rem;
+  }
+
+  .hero__bottom-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px 20px;
+  }
+
+  .hero__bstat {
+    font-size: 0.75rem;
+  }
 
   .sidebar {
     transform: translateX(-100%);
@@ -2289,7 +2361,7 @@ textarea.form-control {
   .impact-detail-grid { grid-template-columns: 1fr; }
   .footer__grid { grid-template-columns: 1fr; }
 
-  .cta-box { flex-direction: column; padding: 40px 24px; }
+  .cta-box { flex-direction: column; padding: 36px 20px; }
   .cta-box__visual { display: none; }
   .cta-box__actions { flex-direction: column; }
 }

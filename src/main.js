@@ -108,6 +108,20 @@ function initSidebarNav() {
   if (toggleOfc && sidebarOfc) {
     toggleOfc.addEventListener('click', () => sidebarOfc.classList.toggle('open'));
   }
+
+  // Mobile nav hamburger toggle
+  const hamburger = document.getElementById('nav-hamburger');
+  const navLinks = document.getElementById('nav-links');
+  if (hamburger && navLinks) {
+    hamburger.addEventListener('click', () => {
+      navLinks.classList.toggle('open');
+    });
+    navLinks.querySelectorAll('.nav__link').forEach(link => {
+      link.addEventListener('click', () => {
+        navLinks.classList.remove('open');
+      });
+    });
+  }
 }
 
 // ---- Particles ----
