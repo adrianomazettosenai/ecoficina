@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Ecoficina — Scanner AR de Peças Automotivas</title>
+  <meta name="description" content="Scanner inteligente de peças automotivas por câmera e inteligência artificial para recondicionamento e impressão 3D sustentável." />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body class="scanner-body">
+  <div class="scanner-app" id="scanner-app">
+    
+    <!-- Top Bar -->
+    <header class="scanner-header">
+      <a href="/" class="scanner-back-btn" title="Voltar ao site da Ecoficina">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="19" y1="12" x2="5" y2="12"></line>
+          <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+        <span>Voltar</span>
+      </a>
+
+      <div class="scanner-title-badge">
+        <span class="live-pulse"></span>
+        <strong>SCANNER AR</strong>
+        <span class="version-tag">V2.4</span>
+      </div>
+
+      <div class="scanner-actions-top">
+        <button class="icon-btn" id="btn-flip-camera" title="Alternar Câmera (Traseira/Frontal)">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 10c0-4.418-3.582-8-8-8s-8 3.582-8 8c0 2.21 0.895 4.21 2.343 5.657L4 20h6v-6l-2.343 2.343C6.619 15.086 6 13.619 6 12c0-3.314 2.686-6 6-6s6 2.686 6 6c0 1.619-0.619 3.086-1.657 4.343L18 20l4-4.343A7.95 7.95 0 0 0 20 10z"/>
+          </svg>
+        </button>
+        <button class="icon-btn" id="btn-torch" title="Luz / Lanterna">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Camera Viewport / AR Feed -->
+    <main class="scanner-viewport" id="scanner-viewport">
+      <!-- Real Camera Video -->
+      <video id="camera-feed" class="camera-feed" autoplay playsinline muted></video>
+      <canvas id="capture-canvas" class="capture-canvas"></canvas>
+
+      <!-- Simulated Photo Fallback (if webcam blocked or sample selected) -->
+      <div class="sample-image-layer" id="sample-layer"></div>
+
+      <!-- AR HUD Overlay -->
+      <div class="hud-overlay" id="hud-overlay">
+        <!-- Telemetry Grid -->
+        <div class="hud-telemetry">
+          <div class="hud-metric">
+            <span class="hud-label">FPS</span>
+            <span class="hud-value" id="hud-fps">60</span>
+          </div>
+          <div class="hud-metric">
+            <span class="hud-label">STATUS</span>
+            <span class="hud-value hud-value--green" id="hud-status">PRONTO</span>
+          </div>
+          <div class="hud-metric">
+            <span class="hud-label">RAIO-X</span>
+            <span class="hud-value" id="hud-ar">ATIVO</span>
+          </div>
+          <div class="hud-metric">
+            <span class="hud-label">RESOLUÇÃO</span>
+            <span class="hud-value" id="hud-res">1080P</span>
+          </div>
+        </div>
+
+        <!-- Central AR Target Box -->
+        <div class="ar-target-box" id="target-box">
+          <div class="corner-bracket corner--tl"></div>
+          <div class="corner-bracket corner--tr"></div>
+          <div class="corner-bracket corner--bl"></div>
+          <div class="corner-bracket corner--br"></div>
+          
+          <div class="laser-scanner" id="laser-scanner"></div>
+          
+          <div class="target-crosshair">
+            <div class="crosshair-ch"></div>
+            <div class="crosshair-cv"></div>
+          </div>
+
+          <!-- Dynamic Bounding Readout -->
+          <div class="target-detection-badge" id="target-badge">
+            <span class="pulse-dot"></span>
+            <span id="target-badge-text">ENQUADRE A PEÇA</span>
+          </div>
+        </div>
+
+        <!-- Helper Guide Text -->
+        <div class="hud-instructions" id="hud-instructions">
+          <p>Mantenha a peça automotiva centralizada dentro da mira</p>
+        </div>
+      </div>
+    </main>
+
+    <!-- Quick Samples Toolbar -->
+    <section class="samples-bar">
+      <span class="samples-label">Testar Amostras:</span>
+      <div class="samples-scroll">
+        <button class="sample-chip active" data-sample="coxim">🛞 Coxim Iveco</button>
+        <button class="sample-chip" data-sample="alternador">⚡ Suporte Alternador</button>
+        <button class="sample-chip" data-sample="coletor">⚙️ Coletor Admissão</button>
+        <button class="sample-chip" data-sample="engrenagem">🔧 Guia do Câmbio</button>
+      </div>
+      <label class="file-upload-btn" title="Carregar foto da galeria">
+        <input type="file" id="input-file" accept="image/*" />
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="17 8 12 3 7 8"></polyline>
+          <line x1="12" y1="3" x2="12" y2="15"></line>
+        </svg>
+        <span>Upload</span>
+      </label>
+    </section>
+
+    <!-- Bottom Controls -->
+    <footer class="scanner-footer">
+      <div class="footer-center">
+        <button class="shutter-btn" id="btn-scan" aria-label="Escanear Peça">
+          <div class="shutter-inner">
+            <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+              <circle cx="12" cy="13" r="4"></circle>
+            </svg>
+          </div>
+          <div class="shutter-ring"></div>
+        </button>
+        <span class="shutter-caption">TOCAR PARA ESCANEAR</span>
+      </div>
+    </footer>
+
+    <!-- Result / Diagnostic Sheet Modal -->
+    <div class="result-modal" id="result-modal">
+      <div class="result-backdrop" id="modal-backdrop"></div>
+      <div class="result-sheet">
+        <div class="sheet-handle"></div>
+
+        <div class="sheet-header">
+          <div class="sheet-title-wrap">
+            <div class="badge badge--success">DIAGNÓSTICO CONCLUÍDO</div>
+            <h2 class="sheet-title" id="res-part-name">Coxim Dianteiro do Motor</h2>
+            <p class="sheet-subtitle" id="res-part-meta">Iveco Stralis / Hi-Way · Part #580144321</p>
+          </div>
+          <button class="sheet-close-btn" id="btn-close-modal">✕</button>
+        </div>
+
+        <!-- 3D Viewer Container -->
+        <div class="viewer-3d-card">
+          <div class="viewer-3d-header">
+            <span class="viewer-label">MODELO 3D CERTIFICADO DA PEÇA</span>
+            <div class="viewer-controls">
+              <button class="viewer-btn active" data-mode="solid">Sólido</button>
+              <button class="viewer-btn" data-mode="wireframe">Wireframe</button>
+              <button class="viewer-btn" data-mode="xray">Raio-X</button>
+            </div>
+          </div>
+          <div class="viewer-3d-canvas-wrap" id="canvas-3d-container">
+            <canvas id="three-canvas"></canvas>
+            <div class="viewer-hint">Arraste para girar a peça 360°</div>
+          </div>
+        </div>
+
+        <!-- Diagnostic Metrics Grid -->
+        <div class="diag-grid">
+          <div class="diag-card">
+            <span class="diag-card__label">CONFIANÇA DA IA</span>
+            <span class="diag-card__value diag-card__value--green" id="res-confidence">98.4%</span>
+            <span class="diag-card__note">Padrão geométrico validado</span>
+          </div>
+          <div class="diag-card">
+            <span class="diag-card__label">ESTADO DE DESGASTE</span>
+            <span class="diag-card__value diag-card__value--yellow" id="res-wear">Moderado (68%)</span>
+            <span class="diag-card__note" id="res-wear-desc">Fissura superficial no elastômero</span>
+          </div>
+          <div class="diag-card">
+            <span class="diag-card__label">RECONDICIONAMENTO</span>
+            <span class="diag-card__value diag-card__value--green">100% Viável</span>
+            <span class="diag-card__note" id="res-material">Nylon Fibra Carbono (CF) + TPU</span>
+          </div>
+        </div>
+
+        <!-- Financial & Eco Impact Banner -->
+        <div class="impact-banner">
+          <div class="impact-col">
+            <span class="impact-tag">ECONOMIA ESTIMADA</span>
+            <div class="impact-values">
+              <span class="impact-old" id="res-price-old">R$ 780 nova</span>
+              <span class="impact-new" id="res-price-eco">R$ 290 recondicionada</span>
+            </div>
+            <strong class="impact-save" id="res-save-badge">Economize R$ 490 (63%)</strong>
+          </div>
+          <div class="impact-col impact-col--eco">
+            <span class="impact-tag">PEGADA AMBIENTAL</span>
+            <div class="eco-stat">
+              <span class="eco-stat__icon">🌱</span>
+              <strong id="res-co2">4.2 kg de CO₂ evitados</strong>
+            </div>
+            <span class="eco-stat__sub">Descarte zero de carcaça metálica</span>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="sheet-actions">
+          <button class="btn btn--primary btn--block btn--lg" id="btn-order-print">
+            <span>Enviar para Impressão 3D na Oficina</span>
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+              <polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
+          </button>
+          <button class="btn btn--outline btn--block" id="btn-scan-again">
+            Escanear Outra Peça
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Success Toast Notification -->
+    <div class="scanner-toast" id="scanner-toast">
+      <span class="toast-icon">🚀</span>
+      <span class="toast-msg" id="toast-msg">Peça enviada para fila de impressão 3D!</span>
+    </div>
+
+  </div>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
